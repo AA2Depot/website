@@ -1,0 +1,367 @@
+/* Look based on the AA2 play manual: neon logo over a teal plate, frosted
+   panel, glossy violet-to-pink section bars, white sheet, teal plate buttons.
+   The backdrop lives in scene.css.
+
+   Two fonts: M PLUS Rounded 1c ExtraBold for titles and labels, like the
+   rounded gothic in the manual's title art, and DotGothic16 for the logo and
+   body text. DotGothic16 is a pixel font drawn on a 16px grid, so its sizes
+   stay on multiples of 16px to keep its edges crisp. */
+
+:root {
+  --font-pixel: "DotGothic16", "MS PGothic", "ＭＳ Ｐゴシック", monospace;
+  --font-round: "M PLUS Rounded 1c", "Arial Rounded MT Bold", system-ui, sans-serif;
+
+  --panel: rgb(170 205 255 / 0.38);
+  --panel-edge: rgb(255 255 255 / 0.55);
+  --sheet-border: rgb(0 117 170 / 0.55);
+  --navy: #001c58;
+  --bar-start: #6e78f8;
+  --bar-mid: #b391ff;
+  --bar-end: #ec64f6;
+  --plate-top: #009695;
+  --plate-bottom: #005387;
+  --plate-ledge: #003a5c;
+  --neon-start: #1ec8ff;
+  --neon-mid: #7a5cff;
+  --neon-end: #ff2fd6;
+  --ink: #10162e;
+  /* Shadows are tinted navy rather than black so they sit in the sky. */
+  --shadow-soft: 0 2px 6px rgb(0 20 70 / 0.25);
+  --shadow-lift: 0 14px 32px -10px rgb(0 20 70 / 0.5);
+  /* Glossy "pillow" shading from the manual's titlebg.jpg: bright top third,
+     flat middle, slightly darker bottom edge. Layered over a base colour. */
+  --gloss:
+    linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.32),
+      rgb(255 255 255 / 0.22) 12%,
+      rgb(255 255 255 / 0) 40%,
+      rgb(255 255 255 / 0) 62%,
+      rgb(0 0 60 / 0.16) 100%
+    );
+  --content-w: 860px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  padding-bottom: var(--town-h);
+  font-family: var(--font-pixel);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ink);
+  background: var(--sky-6);
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+  font-weight: normal;
+}
+
+/* Content sits above the backdrop but lets clicks through its empty parts, so
+   the sun and moon can be grabbed. */
+main {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.panel {
+  pointer-events: auto;
+}
+
+/* Logo: neon wordmark over a teal plate, like the manual's title art
+   -------------------------------------------------------------------------- */
+.logo {
+  max-width: calc(var(--content-w) + 32px);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) 16px clamp(2rem, 5vw, 3rem);
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+}
+
+.logo__mark {
+  position: relative;
+  isolation: isolate;
+  font-size: 48px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 2px #fff;
+  animation: neon-on 1.6s step-end both;
+}
+
+/* Gradient halo behind the white letters, cyan through violet to magenta. */
+.logo__mark::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  color: transparent;
+  background: linear-gradient(90deg, var(--neon-start), var(--neon-mid) 50%, var(--neon-end));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 10px transparent;
+  filter: blur(3px) saturate(1.4);
+  animation: neon-hum 5s ease-in-out 1.6s infinite;
+}
+
+/* A neon sign switching on: a few stuttering flashes, then steady. */
+@keyframes neon-on {
+  0% { opacity: 0.08; }
+  8% { opacity: 1; }
+  11% { opacity: 0.15; }
+  16% { opacity: 1; }
+  19% { opacity: 0.3; }
+  34% { opacity: 1; }
+  37% { opacity: 0.55; }
+  40%,
+  100% { opacity: 1; }
+}
+
+@keyframes neon-hum {
+  50% { opacity: 0.75; }
+}
+
+/* Teal plate surface, from the manual's "プレイマニュアル" plate. Shared by the
+   subtitle and the link buttons. The solid ledge under it gives a pressable,
+   slightly pixel-art depth. */
+.plate,
+.button {
+  color: #fff;
+  font-family: var(--font-round);
+  font-weight: 800;
+  text-shadow: 0 2px 0 rgb(0 40 70 / 0.55);
+  background: var(--gloss), linear-gradient(var(--plate-top), var(--plate-bottom));
+  border: 2px solid #d6f2f0;
+  border-radius: 10px;
+  /* Thin light line just inside the rim, the ledge, then a soft shadow. */
+  box-shadow:
+    inset 0 0 0 2px #00607c,
+    inset 0 0 0 3px rgb(255 255 255 / 0.5),
+    0 4px 0 var(--plate-ledge),
+    var(--shadow-lift);
+}
+
+.plate {
+  padding: 8px 24px 10px;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+@media (min-width: 640px) {
+  .logo__mark {
+    font-size: 96px;
+  }
+
+  .plate {
+    padding-inline: 32px;
+    font-size: 28px;
+  }
+}
+
+/* Panel: frosted glass that takes its tint from the sky behind it
+   -------------------------------------------------------------------------- */
+.panel {
+  max-width: var(--content-w);
+  margin: 0 16px;
+  padding: 20px;
+  display: grid;
+  gap: 20px;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.25), rgb(255 255 255 / 0) 120px),
+    var(--panel);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    var(--shadow-soft),
+    var(--shadow-lift);
+}
+
+@media (min-width: 792px) {
+  .panel {
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel {
+    padding: 12px;
+  }
+}
+
+.panel > section + section {
+  padding-top: 20px;
+  border-top: 1px solid rgb(255 255 255 / 0.5);
+}
+
+/* Section title bar, like the manual's h4 */
+.bar {
+  height: 50px;
+  margin-bottom: 12px;
+  padding-inline: 20px;
+  line-height: 48px;
+  font-family: var(--font-round);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 6px rgb(0 10 60 / 0.7), 0 2px 0 rgb(0 10 60 / 0.35);
+  background:
+    var(--gloss),
+    linear-gradient(90deg, var(--bar-start), var(--bar-mid) 50%, var(--bar-end));
+  border: 1px solid var(--navy);
+  border-left-width: 6px;
+  border-radius: 2px;
+  box-shadow:
+    0 3px 0 rgb(0 28 88 / 0.35),
+    var(--shadow-soft);
+}
+
+/* White sheet, like the manual's .ContBG */
+.sheet {
+  margin-inline: 10px;
+  padding: 14px 16px;
+  background: rgb(255 255 255 / 0.94);
+  border: 1px solid var(--sheet-border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-soft);
+}
+
+@media (max-width: 480px) {
+  .sheet {
+    margin-inline: 0;
+  }
+}
+
+/* Link buttons
+   -------------------------------------------------------------------------- */
+.buttons {
+  margin-inline: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .buttons {
+    margin-inline: 0;
+  }
+}
+
+.button {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 132px;
+  padding: 20px 40px 20px 20px;
+  text-decoration: none;
+  transition: filter 150ms, transform 150ms, box-shadow 150ms;
+}
+
+/* Pixel arrow that slides in on hover. */
+.button::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 12px;
+  height: 20px;
+  margin-top: -10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10' shape-rendering='crispEdges' fill='%23fff'%3E%3Cpath d='M0 0h2v1h1v1h1v1h1v1h1v2H5v1H4v1H3v1H2v1H0z'/%3E%3C/svg%3E") center / contain no-repeat;
+  filter: drop-shadow(0 2px 0 rgb(0 40 70 / 0.55));
+  opacity: 0;
+  translate: -8px 0;
+  transition: opacity 150ms, translate 150ms;
+}
+
+.button:hover,
+.button:focus-visible {
+  filter: brightness(1.15) saturate(1.1);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 2px #00607c,
+    inset 0 0 0 3px rgb(255 255 255 / 0.5),
+    0 6px 0 var(--plate-ledge),
+    0 20px 36px -10px rgb(0 20 70 / 0.55);
+}
+
+.button:hover::after,
+.button:focus-visible::after {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.button:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 0 0 2px #00607c,
+    inset 0 0 0 3px rgb(255 255 255 / 0.5),
+    0 1px 0 var(--plate-ledge),
+    var(--shadow-soft);
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--bar-end);
+  outline-offset: 3px;
+}
+
+.button__label {
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.button__desc {
+  font-family: var(--font-pixel);
+  font-weight: normal;
+  text-shadow: 0 1px 0 rgb(0 40 70 / 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo__mark,
+  .logo__mark::before {
+    animation: none;
+  }
+
+  .button,
+  .button::after {
+    transition: none;
+  }
+
+  .button:hover,
+  .button:focus-visible,
+  .button:active {
+    transform: none;
+  }
+}
+
+/* Text for screen readers only. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

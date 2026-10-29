@@ -1,0 +1,37 @@
+---
+layout: base.njk
+title: AA2 Depot
+subtitle: Artificial Academy 2
+description: A collection of tools and useful projects for Artificial Academy 2.
+---
+<main>
+  <header class="logo">
+    <h1 class="logo__mark" data-text="{{ title }}">{{ title }}</h1>
+    <p class="plate">{{ subtitle }}</p>
+  </header>
+
+  <div class="panel">
+    <section aria-labelledby="welcome">
+      <h2 id="welcome" class="bar">Welcome</h2>
+      <div class="sheet">
+        <p>
+          A collection of tools and useful projects for Artificial Academy 2.
+          I might expand the site in the future.
+        </p>
+      </div>
+    </section>
+
+    <section aria-labelledby="links">
+      <h2 id="links" class="bar">Active Projects</h2>
+      <nav class="buttons" aria-label="External sites">
+        {%- for link in links %}
+        <a class="button" href="{{ link.url }}" target="_blank">
+          <span class="button__label">{{ link.label }}</span>
+          <span class="button__desc">{{ link.description }}</span>
+          <span class="visually-hidden">(opens in new tab)</span>
+        </a>
+        {%- endfor %}
+      </nav>
+    </section>
+  </div>
+</main>

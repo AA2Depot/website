@@ -1,0 +1,463 @@
+/* Pixel-art backdrop drawn by _includes/scene.njk.
+
+   The palette follows the visitor's local time, like AA2's day periods: the
+   inline script in base.njk sets --hour and html[data-period] to morning, day,
+   evening or night (append ?period=night to preview one). Day is the default.
+   Dragging the sun or moon changes the hour (js/sky.js). */
+
+/* Registered so period changes can ease between palettes, and so sky.js can
+   read the wheel geometry back in pixels. */
+@property --sky-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sky-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sky-3 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sky-4 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sky-5 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sky-6 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sun { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sun-glow { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --sun-size { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --star-opacity { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --cloud { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --cloud-shade { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --cloud-opacity { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --mountain { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --far { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --bld { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --shade { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --roof { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --win { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --lit { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --door { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --clock { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --tree { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --tree-hi { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --tree-lo { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --trunk { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --ground { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --ground-hi { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --fence { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --petal { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --petal-shade { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --petal-opacity { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --wheel-cx { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --wheel-rx { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --wheel-ry { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --wheel-cy { syntax: "<length>"; inherits: true; initial-value: 0px; }
+
+:root {
+  --px: 4px;
+  /* Rendered height of the skyline (viewBox 640x100). style.css pads the page
+     bottom by this much so the school shows in full once scrolled down. */
+  --town-h: calc(max(100vw, 900px) * 100 / 640);
+
+  /* Sky wheel: sun and moon travel an ellipse around a point just above the
+     skyline, opposite each other. --hour 12 puts the sun at the top, 0 the
+     moon. The centre sits right of middle so the top of the arc clears the
+     logo. */
+  --hour: 12;
+  --wheel-cx: 56vw;
+  --wheel-cy: 78vh;
+  --wheel-rx: 40vw;
+  --wheel-ry: 70vh;
+
+  --moon: #f2f0dc;
+  --moon-glow: #8fa3ff;
+  --crater: #c9c4a4;
+
+  transition-property:
+    --sky-1, --sky-2, --sky-3, --sky-4, --sky-5, --sky-6,
+    --sun, --sun-glow, --sun-size, --star-opacity,
+    --cloud, --cloud-shade, --cloud-opacity,
+    --mountain, --far, --bld, --shade, --roof, --win, --lit, --door, --clock,
+    --tree, --tree-hi, --tree-lo, --trunk, --ground, --ground-hi, --fence,
+    --petal, --petal-shade, --petal-opacity;
+  transition-duration: 1.2s;
+
+  --sky-1: #3d8fe0;
+  --sky-2: #55a2ea;
+  --sky-3: #6fb4f0;
+  --sky-4: #8cc5f4;
+  --sky-5: #abd6f7;
+  --sky-6: #cbe6fa;
+
+  --sun: #fffbe6;
+  --sun-glow: #fff2b0;
+  --sun-size: 64px;
+
+  --star-opacity: 0;
+  --cloud: #fff;
+  --cloud-shade: #d3e3f3;
+  --cloud-opacity: 1;
+
+  --mountain: #a9c7e6;
+  --far: #8fbf9f;
+  --bld: #f2f4f8;
+  --shade: #c4cfdd;
+  --roof: #4f6e93;
+  --win: #79aee0;
+  --lit: var(--win);
+  --door: #5a6f8a;
+  --clock: #fff;
+  --tree: #f7b9d2;
+  --tree-hi: #fdd9e7;
+  --tree-lo: #e48fb4;
+  --trunk: #7b5560;
+  --ground: #79b96f;
+  --ground-hi: #a5d790;
+  --fence: #5d7a63;
+
+  --petal: #ffc6dc;
+  --petal-shade: #f29ac0;
+  --petal-opacity: 1;
+}
+
+:root[data-period="morning"] {
+  --sky-1: #6f8fd6;
+  --sky-2: #8ea2e2;
+  --sky-3: #b2b4ea;
+  --sky-4: #d7c3e8;
+  --sky-5: #f2cfdc;
+  --sky-6: #ffe0cf;
+
+  --sun: #fff1d0;
+  --sun-glow: #ffc59a;
+  --sun-size: 72px;
+
+  --cloud: #fff6f2;
+  --cloud-shade: #e8c8d6;
+
+  --mountain: #b7b6dc;
+  --far: #9fb8b0;
+  --bld: #f4ecf0;
+  --shade: #cbbccd;
+  --roof: #5b5f8f;
+  --win: #a8bce6;
+  --door: #6b6a8e;
+  --tree: #f7bcd4;
+  --tree-hi: #ffdbe8;
+  --tree-lo: #df93b6;
+  --trunk: #7d5763;
+  --ground: #82b07a;
+  --ground-hi: #b0d39a;
+  --fence: #66776d;
+}
+
+:root[data-period="evening"] {
+  --sky-1: #2b2470;
+  --sky-2: #4a2d8c;
+  --sky-3: #7a3a9f;
+  --sky-4: #b04aa2;
+  --sky-5: #e2669a;
+  --sky-6: #ff9a7a;
+
+  --sun: #ffd27a;
+  --sun-glow: #ff6a5a;
+  --sun-size: 110px;
+
+  --star-opacity: 0.35;
+  --cloud: #ffb3c4;
+  --cloud-shade: #c96a9e;
+  --cloud-opacity: 0.95;
+
+  --mountain: #6a3f8e;
+  --far: #553480;
+  --bld: #c9a0c8;
+  --shade: #9a73a6;
+  --roof: #3d2a63;
+  --win: #ffcf8f;
+  --lit: #ffe7a8;
+  --door: #4a3570;
+  --clock: #ffe7c8;
+  --tree: #e98ab7;
+  --tree-hi: #ffb3d1;
+  --tree-lo: #b65a92;
+  --trunk: #4d2f4f;
+  --ground: #4f4078;
+  --ground-hi: #6e5a9a;
+  --fence: #33264f;
+
+  --petal: #ffb0cf;
+  --petal-shade: #d97aa8;
+}
+
+:root[data-period="night"] {
+  --sky-1: #050820;
+  --sky-2: #0a1030;
+  --sky-3: #0f1a42;
+  --sky-4: #152352;
+  --sky-5: #1c2e63;
+  --sky-6: #253b74;
+
+  --star-opacity: 1;
+  --cloud: #2b3a72;
+  --cloud-shade: #1f2b58;
+  --cloud-opacity: 0.8;
+
+  --mountain: #17234f;
+  --far: #121c40;
+  --bld: #2a3766;
+  --shade: #1f2a52;
+  --roof: #121a38;
+  --win: #1a2448;
+  --lit: #ffd76a;
+  --door: #141c3a;
+  --clock: #d9e0ff;
+  --tree: #4a3f78;
+  --tree-hi: #5c4f8f;
+  --tree-lo: #362e5e;
+  --trunk: #1d1838;
+  --ground: #10183a;
+  --ground-hi: #1b2756;
+  --fence: #0b1130;
+
+  --petal: #e7a3c8;
+  --petal-shade: #a86c98;
+  --petal-opacity: 0.7;
+}
+
+/* Sky: hard colour bands joined by a strip of checkerboard dither, the way
+   pixel-art skies are painted.
+   -------------------------------------------------------------------------- */
+.scene {
+  --dither: calc(var(--px) * 2);
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    repeating-conic-gradient(var(--sky-2) 0 25%, transparent 0 50%) 0 calc(14vh - var(--dither)) / var(--dither) var(--dither) repeat-x,
+    repeating-conic-gradient(var(--sky-3) 0 25%, transparent 0 50%) 0 calc(28vh - var(--dither)) / var(--dither) var(--dither) repeat-x,
+    repeating-conic-gradient(var(--sky-4) 0 25%, transparent 0 50%) 0 calc(42vh - var(--dither)) / var(--dither) var(--dither) repeat-x,
+    repeating-conic-gradient(var(--sky-5) 0 25%, transparent 0 50%) 0 calc(56vh - var(--dither)) / var(--dither) var(--dither) repeat-x,
+    repeating-conic-gradient(var(--sky-6) 0 25%, transparent 0 50%) 0 calc(70vh - var(--dither)) / var(--dither) var(--dither) repeat-x,
+    linear-gradient(
+      var(--sky-1) 0 14vh,
+      var(--sky-2) 14vh 28vh,
+      var(--sky-3) 28vh 42vh,
+      var(--sky-4) 42vh 56vh,
+      var(--sky-5) 56vh 70vh,
+      var(--sky-6) 70vh
+    );
+}
+
+/* Sun and moon on the sky wheel. Each one is draggable (js/sky.js).
+   -------------------------------------------------------------------------- */
+.scene__body {
+  position: absolute;
+  left: calc(var(--wheel-cx) + var(--wheel-rx) * sin(var(--angle)));
+  top: calc(var(--wheel-cy) - var(--wheel-ry) * cos(var(--angle)));
+  translate: -50% -50%;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.scene__body.is-dragging {
+  cursor: grabbing;
+}
+
+.scene__sun {
+  --angle: calc((var(--hour) - 12) * 15deg);
+  width: var(--sun-size);
+  fill: var(--sun);
+  filter: drop-shadow(0 0 16px var(--sun-glow)) drop-shadow(0 0 48px var(--sun-glow));
+}
+
+.scene__moon {
+  --angle: calc(var(--hour) * 15deg);
+  width: 56px;
+  fill: var(--moon);
+  filter: drop-shadow(0 0 16px var(--moon-glow)) drop-shadow(0 0 48px var(--moon-glow));
+}
+
+.scene__craters {
+  fill: var(--crater);
+}
+
+/* Stars
+   -------------------------------------------------------------------------- */
+.scene__stars i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  opacity: var(--star-opacity);
+  animation: twinkle var(--tw) steps(1) var(--tw-delay) infinite;
+}
+
+.scene__stars i:nth-child(4n) {
+  width: 2px;
+  height: 2px;
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: calc(var(--star-opacity) * 0.3);
+  }
+}
+
+/* Clouds drift right and wrap around. The negative delay starts each one at
+   its --left position instead of off-screen.
+   -------------------------------------------------------------------------- */
+.scene__cloud {
+  position: absolute;
+  left: calc(var(--left) * 1vw);
+  width: calc(160px * var(--size));
+  fill: var(--cloud);
+  opacity: var(--cloud-opacity);
+  animation: drift var(--speed) linear calc(var(--speed) * var(--left) / -100) infinite;
+}
+
+.scene__cloud-shade {
+  fill: var(--cloud-shade);
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(calc(var(--left) * -1vw - 100%));
+  }
+
+  to {
+    transform: translateX(calc(100vw - var(--left) * 1vw));
+  }
+}
+
+/* School skyline. Wider than a phone screen, so it is centred and cropped.
+   -------------------------------------------------------------------------- */
+.scene__town {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: max(100vw, 900px);
+  height: var(--town-h);
+  translate: -50% 0;
+}
+
+.s-mountain { fill: var(--mountain); }
+.s-far { fill: var(--far); }
+.s-bld { fill: var(--bld); }
+.s-shade { fill: var(--shade); }
+.s-roof { fill: var(--roof); }
+.s-win { fill: var(--win); }
+.s-win.is-lit { fill: var(--lit); }
+.s-door { fill: var(--door); }
+.s-clock { fill: var(--clock); }
+.s-tree { fill: var(--tree); }
+.s-tree-hi { fill: var(--tree-hi); }
+.s-tree-lo { fill: var(--tree-lo); }
+.s-trunk { fill: var(--trunk); }
+.s-ground { fill: var(--ground); }
+.s-ground-hi { fill: var(--ground-hi); }
+.s-fence { fill: var(--fence); }
+
+/* Clock hands pivot on the clock centre (the bottom of each hand). The hour
+   hand turns twice a day, the minute hand once an hour. */
+.s-hand {
+  fill: var(--roof);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.s-hand--hour { transform: rotate(calc(var(--hour) * 30deg)); }
+.s-hand--minute { transform: rotate(calc(var(--hour) * 360deg)); }
+
+/* Windows that switch on and off. By day --lit equals --win, so they only
+   show at night. */
+.s-win.is-toggle {
+  animation: window-toggle var(--toggle) steps(1) var(--toggle-delay) infinite;
+}
+
+@keyframes window-toggle {
+  0% { fill: var(--win); }
+  45% { fill: var(--lit); }
+}
+
+/* Shooting stars: a short streak that crosses down and to the left once per
+   cycle, at the stars' opacity.
+   -------------------------------------------------------------------------- */
+.scene__meteor {
+  position: absolute;
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, #fff, rgb(255 255 255 / 0));
+  transform: rotate(-24.6deg);
+  transform-origin: left center;
+  opacity: 0;
+  animation: meteor 14s linear var(--meteor-delay) infinite;
+}
+
+@keyframes meteor {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+  }
+
+  1% {
+    opacity: var(--star-opacity);
+  }
+
+  6%,
+  100% {
+    translate: -260px 120px;
+    opacity: 0;
+  }
+}
+
+/* Sakura petals: a 6x4 pixel petal with a darker corner, flipping as it
+   sways down the screen.
+   -------------------------------------------------------------------------- */
+.scene__petals i {
+  position: absolute;
+  top: -12px;
+  width: 6px;
+  height: 4px;
+  background: var(--petal);
+  box-shadow: inset -2px -2px 0 var(--petal-shade);
+  opacity: var(--petal-opacity);
+  animation: fall var(--fall) linear var(--fall-delay) infinite;
+}
+
+.scene__petals i:nth-child(3n) {
+  width: 8px;
+  height: 6px;
+}
+
+@keyframes fall {
+  0% {
+    transform: translate(0, 0) scaleY(1);
+  }
+
+  25% {
+    transform: translate(var(--sway), 27vh) scaleY(-1);
+  }
+
+  50% {
+    transform: translate(0, 54vh) scaleY(1);
+  }
+
+  75% {
+    transform: translate(calc(var(--sway) * -1), 81vh) scaleY(-1);
+  }
+
+  100% {
+    transform: translate(0, 108vh) scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+
+  .scene__stars i,
+  .scene__cloud,
+  .s-win.is-toggle {
+    animation: none;
+  }
+
+  .scene__petals,
+  .scene__meteor {
+    display: none;
+  }
+}

@@ -1,0 +1,16 @@
+[tools]
+node = "26.13.0"
+
+[tasks.install]
+description = "Install npm dependencies"
+run = "npm install"
+
+[tasks.dev]
+description = "Run the 11ty dev server with live reload"
+depends = ["install"]
+run = "npx @11ty/eleventy --serve"
+
+[tasks.build]
+description = "Build the static site into _site/"
+depends = ["install"]
+run = "npx @11ty/eleventy"

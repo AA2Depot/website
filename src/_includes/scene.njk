@@ -1,0 +1,162 @@
+{#- Pixel-art backdrop: banded sky, sun or moon, stars, drifting clouds, a school
+    skyline and falling sakura petals. Colours come from scene.css and change
+    with the time of day (html[data-period]). Positions that look random are
+    derived from the loop index so every build is identical. -#}
+<div class="scene" aria-hidden="true">
+  <div class="scene__stars">
+    {%- for i in range(0, 60) %}
+    <i style="left: {{ (i * 73 + 11) % 100 }}%; top: {{ (i * 41 + 7) % 62 }}%; --tw: {{ 2 + (i * 7) % 5 }}s; --tw-delay: -{{ (i * 13) % 50 / 10 }}s"></i>
+    {%- endfor %}
+  </div>
+
+  {#- Shooting stars, only visible when the stars are. -#}
+  <i class="scene__meteor" style="left: 72%; top: 8%; --meteor-delay: 3s"></i>
+  <i class="scene__meteor" style="left: 38%; top: 4%; --meteor-delay: 11s"></i>
+
+  {#- Sun and moon sit opposite each other on the sky wheel. data-top-hour is
+      the hour at which each one is at the top; sky.js uses it when dragging. -#}
+  {%- macro disc() %}
+    <rect x="5" y="0" width="6" height="1"/>
+    <rect x="3" y="1" width="10" height="1"/>
+    <rect x="2" y="2" width="12" height="1"/>
+    <rect x="1" y="3" width="14" height="2"/>
+    <rect x="0" y="5" width="16" height="6"/>
+    <rect x="1" y="11" width="14" height="2"/>
+    <rect x="2" y="13" width="12" height="1"/>
+    <rect x="3" y="14" width="10" height="1"/>
+    <rect x="5" y="15" width="6" height="1"/>
+  {%- endmacro %}
+  <svg class="scene__body scene__sun" data-top-hour="12" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    {{- disc() }}
+  </svg>
+  <svg class="scene__body scene__moon" data-top-hour="0" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    {{- disc() }}
+    <g class="scene__craters">
+      <rect x="4" y="5" width="3" height="2"/>
+      <rect x="9" y="9" width="2" height="2"/>
+      <rect x="10" y="4" width="2" height="1"/>
+      <rect x="5" y="11" width="1" height="1"/>
+    </g>
+  </svg>
+
+  {%- set clouds = [
+    { top: 8, left: 10, size: 1.0, speed: 140 },
+    { top: 22, left: 62, size: 0.7, speed: 190 },
+    { top: 4, left: 78, size: 1.3, speed: 120 },
+    { top: 34, left: 30, size: 0.55, speed: 230 }
+  ] %}
+  {%- for cloud in clouds %}
+  <svg class="scene__cloud" viewBox="0 0 32 12" shape-rendering="crispEdges"
+       style="top: {{ cloud.top }}%; --left: {{ cloud.left }}; --size: {{ cloud.size }}; --speed: {{ cloud.speed }}s">
+    <rect x="9" y="0" width="9" height="2"/>
+    <rect x="5" y="2" width="18" height="2"/>
+    <rect x="20" y="3" width="7" height="2"/>
+    <rect x="2" y="4" width="28" height="4"/>
+    <rect x="0" y="8" width="32" height="2"/>
+    <rect class="scene__cloud-shade" x="0" y="10" width="32" height="2"/>
+  </svg>
+  {%- endfor %}
+
+  <svg class="scene__town" viewBox="0 0 640 100" preserveAspectRatio="xMidYMax meet" shape-rendering="crispEdges">
+    <defs>
+      <g id="tree">
+        <rect class="s-tree" x="6" y="0" width="12" height="2"/>
+        <rect class="s-tree" x="3" y="2" width="18" height="2"/>
+        <rect class="s-tree" x="1" y="4" width="22" height="8"/>
+        <rect class="s-tree-hi" x="5" y="2" width="8" height="2"/>
+        <rect class="s-tree-hi" x="3" y="4" width="6" height="4"/>
+        <rect class="s-tree-lo" x="3" y="12" width="18" height="3"/>
+        <rect class="s-tree-lo" x="6" y="15" width="12" height="2"/>
+        <rect class="s-trunk" x="11" y="17" width="3" height="8"/>
+      </g>
+    </defs>
+
+    {#- Skyline is drawn on a 480-wide stage centred in the 640-wide view;
+        the far layers, ground and fence run out to both edges. -#}
+    <g transform="translate(80 0)">
+
+    <path class="s-mountain" d="M-80 92V66H-70V64H-58V62H-46V64H-34V66H-22V68H-10V70H10V68H20V66H30V64H40V62H54V64H64V66H74V68H90V70H120V68H132V66H142V64H156V62H170V60H186V62H198V64H212V66H300V64H316V62H330V60H346V58H362V60H376V62H388V64H404V66H420V68H436V66H450V64H464V66H480V64H494V62H508V60H522V62H536V64H548V66H560V92Z"/>
+    <path class="s-far" d="M-80 92V76H-60V74H-40V76H-20V78H12V76H30V74H52V76H70V78H140V80H330V76H350V74H380V76H410V73H440V75H480V77H500V75H520V77H540V76H560V92Z"/>
+
+    {#- Club building, left -#}
+    <rect class="s-roof" x="68" y="68" width="69" height="2"/>
+    <rect class="s-bld" x="70" y="70" width="65" height="22"/>
+    <rect class="s-shade" x="70" y="70" width="65" height="2"/>
+    {%- for k in range(0, 6) %}
+    <rect class="s-win{% if k == 2 or k == 5 %} is-lit{% endif %}" x="{{ 75 + k * 10 }}" y="75" width="6" height="6"/>
+    {%- endfor %}
+
+    {#- Gym, right -#}
+    <rect class="s-roof" x="364" y="62" width="32" height="2"/>
+    <rect class="s-roof" x="352" y="64" width="56" height="2"/>
+    <rect class="s-roof" x="344" y="66" width="72" height="2"/>
+    <rect class="s-roof" x="340" y="68" width="80" height="2"/>
+    <rect class="s-bld" x="340" y="70" width="80" height="22"/>
+    <rect class="s-shade" x="414" y="70" width="6" height="22"/>
+    {%- for k in range(0, 7) %}
+    <rect class="s-win{% if k == 1 or k == 4 %} is-lit{% endif %}" x="{{ 346 + k * 10 }}" y="74" width="6" height="5"/>
+    {%- endfor %}
+
+    {#- Main school building with clock tower -#}
+    <rect class="s-roof" x="148" y="49" width="176" height="3"/>
+    <rect class="s-bld" x="150" y="52" width="172" height="40"/>
+    <rect class="s-shade" x="150" y="52" width="172" height="2"/>
+    <rect class="s-shade" x="316" y="54" width="6" height="38"/>
+    {%- for row in [57, 69, 81] %}
+    {%- set r = loop.index %}
+    {%- for k in range(0, 14) %}
+    {%- if not (row == 81 and (k == 6 or k == 7)) %}
+    {%- if (k * 7 + r * 3) % 5 == 0 %}
+    <rect class="s-win is-lit" x="{{ 154 + k * 12 }}" y="{{ row }}" width="8" height="7"/>
+    {%- elif (k * 5 + r * 7) % 9 == 0 %}
+    {#- Someone working late: switches on and off at its own pace. -#}
+    <rect class="s-win is-toggle" x="{{ 154 + k * 12 }}" y="{{ row }}" width="8" height="7" style="--toggle: {{ 9 + (k * 3 + r) % 7 }}s; --toggle-delay: -{{ (k * 11 + r * 5) % 13 }}s"/>
+    {%- else %}
+    <rect class="s-win" x="{{ 154 + k * 12 }}" y="{{ row }}" width="8" height="7"/>
+    {%- endif %}
+    {%- endif %}
+    {%- endfor %}
+    {%- endfor %}
+    <rect class="s-shade" x="226" y="79" width="20" height="13"/>
+    <rect class="s-door" x="228" y="81" width="16" height="11"/>
+    <rect class="s-shade" x="235" y="81" width="2" height="11"/>
+
+    <rect class="s-roof" x="235" y="19" width="2" height="3"/>
+    <rect class="s-roof" x="232" y="22" width="8" height="2"/>
+    <rect class="s-roof" x="228" y="24" width="16" height="2"/>
+    <rect class="s-roof" x="224" y="26" width="24" height="2"/>
+    <rect class="s-roof" x="220" y="28" width="32" height="2"/>
+    <rect class="s-bld" x="222" y="30" width="28" height="19"/>
+    <rect class="s-shade" x="246" y="30" width="4" height="19"/>
+    <rect class="s-clock" x="232" y="35" width="8" height="8"/>
+    <rect class="s-clock" x="233" y="34" width="6" height="10"/>
+    <rect class="s-clock" x="231" y="36" width="10" height="6"/>
+    {#- Clock hands follow --hour, so they turn when the sun is dragged. -#}
+    <rect class="s-hand s-hand--minute" x="235.5" y="35" width="1" height="4"/>
+    <rect class="s-hand s-hand--hour" x="235.5" y="36.5" width="1" height="2.5"/>
+
+    {#- Sakura trees -#}
+    {%- for t in [[-74, 67, 1], [-56, 55, 1.5], [-22, 67, 1], [8, 67, 1], [30, 67, 1], [112, 55, 1.5], [326, 55, 1.5], [424, 67, 1], [448, 67, 1], [476, 55, 1.5], [510, 67, 1], [534, 67, 1]] %}
+    <use href="#tree" transform="translate({{ t[0] }} {{ t[1] }}) scale({{ t[2] }})"/>
+    {%- endfor %}
+
+    {#- Ground and fence, with a gap for the gate -#}
+    <rect class="s-ground" x="-80" y="92" width="640" height="8"/>
+    <rect class="s-ground-hi" x="-80" y="92" width="640" height="1"/>
+    <rect class="s-fence" x="-80" y="87" width="302" height="1"/>
+    <rect class="s-fence" x="250" y="87" width="310" height="1"/>
+    {%- for k in range(-13, 94) %}
+    {%- set x = k * 6 %}
+    {%- if x < 222 or x > 250 %}
+    <rect class="s-fence" x="{{ x }}" y="86" width="1" height="6"/>
+    {%- endif %}
+    {%- endfor %}
+    </g>
+  </svg>
+
+  <div class="scene__petals">
+    {%- for i in range(0, 22) %}
+    <i style="left: {{ (i * 37 + 5) % 100 }}%; --fall: {{ 9 + (i * 7) % 9 }}s; --fall-delay: -{{ (i * 17) % 90 / 5 }}s; --sway: {{ 2 + (i * 3) % 5 }}vw"></i>
+    {%- endfor %}
+  </div>
+</div>

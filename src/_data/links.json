@@ -1,0 +1,17 @@
+[
+  {
+    "label": "Cardmaker Toolkit",
+    "description": "Cardmaking tools and resources.",
+    "url": "https://toolkit.aa2d.net/"
+  },
+  {
+    "label": "Hardlinker",
+    "description": "Auto-updater tool for clothing textures.",
+    "url": "https://hardlinker.aa2d.net/"
+  },
+  {
+    "label": "Modulus",
+    "description": "Write AA2U modules with real code.",
+    "url": "https://modulus.aa2d.net/"
+  }
+]
